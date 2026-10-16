@@ -11,7 +11,7 @@ This experiment demonstrates the Field Oriented Control (FOC) or Vector Control 
 | Name of Developer | Kalraj Maddheshiya|
 | --- | --- |
 | **Institute** | Rajkiya Engineering College, Banda |
-| **Email id** | [maddheshiyakalraj@gmail.com](mailto: maddheshiyakalraj@gmail.com) |
+| **Email id** | [maddheshiyakalraj@gmail.com] |
 | **Department** | Information Technology |
 
 ## Contributors List
