@@ -145,7 +145,29 @@ for (let i = 0; i < 4; i++) {
   magnet.rotation.z = angle;
   rotor.add(magnet);
 }
+// Rotating Magnetic Field Arrow
+const fieldArrow = new THREE.ArrowHelper(
+  new THREE.Vector3(1, 0, 0),
+  new THREE.Vector3(0, 0, 0),
+  1.4,
+  0xfacc15,
+  0.25,
+  0.15
+);
 
+motor.add(fieldArrow);
+
+// Q Axis Arrow
+const qArrow = new THREE.ArrowHelper(
+  new THREE.Vector3(0, 1, 0),
+  new THREE.Vector3(0, 0, 0),
+  1.1,
+  0xa78bfa,
+  0.2,
+  0.12
+);
+
+motor.add(qArrow);
 // Base
 const base = new THREE.Mesh(
   new THREE.BoxGeometry(4.5, 0.25, 2.8),
@@ -181,10 +203,27 @@ document.getElementById("speed").oninput = (event) => {
 function animate() {
   requestAnimationFrame(animate);
 
-  if (running) {
-    rotor.rotation.z += speed;
-  }
+ if (running) {
+  rotor.rotation.z += speed;
 
+  const angle = rotor.rotation.z;
+
+  fieldArrow.setDirection(
+    new THREE.Vector3(
+      Math.cos(angle),
+      Math.sin(angle),
+      0
+    )
+  );
+
+  qArrow.setDirection(
+    new THREE.Vector3(
+      -Math.sin(angle),
+      Math.cos(angle),
+      0
+    )
+  );
+}
   controls.update();
   renderer.render(scene, camera);
 }
