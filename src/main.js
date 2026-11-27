@@ -1,97 +1,160 @@
+
 import * as THREE from "https://esm.sh/three@0.170.0";
 import { OrbitControls } from "https://esm.sh/three@0.170.0/examples/jsm/controls/OrbitControls.js";
+
+const container = document.getElementById("motor-canvas");
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x101827);
 
 const camera = new THREE.PerspectiveCamera(
-  60, window.innerWidth / window.innerHeight, 0.1, 100
+  45, container.clientWidth / container.clientHeight, 0.1, 100
 );
-camera.position.set(4, 4, 5);
+camera.position.set(4, 3.5, 6);
+camera.lookAt(0, 0, 0);
 
-const container = document.getElementById("motor-canvas");
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(container.clientWidth || 800, 500);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 container.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.target.set(0, 0, 0);
+controls.minDistance = 3;
+controls.maxDistance = 12;
 
 scene.add(new THREE.AmbientLight(0xffffff, 1.5));
 
-const light = new THREE.DirectionalLight(0xffffff, 2);
-light.position.set(5, 8, 5);
+const light = new THREE.DirectionalLight(0xffffff, 3);
+light.position.set(4, 6, 5);
+light.castShadow = true;
 scene.add(light);
 
 const motor = new THREE.Group();
 scene.add(motor);
 
-// Stator
 const metal = new THREE.MeshStandardMaterial({
-  color: 0x94a3b8, metalness: 0.7, roughness: 0.3
+  color: 0x8795a8, metalness: 0.8, roughness: 0.25
 });
 
+const darkMetal = new THREE.MeshStandardMaterial({
+  color: 0x334155, metalness: 0.8, roughness: 0.3
+});
+
+const copper = new THREE.MeshStandardMaterial({
+  color: 0xd97706, metalness: 0.65, roughness: 0.25
+});
+
+const blue = new THREE.MeshStandardMaterial({
+  color: 0x2563eb, metalness: 0.4, roughness: 0.3
+});
+
+const red = new THREE.MeshStandardMaterial({
+  color: 0xdc2626, metalness: 0.4, roughness: 0.3
+});
+
+// Stator body
 const stator = new THREE.Mesh(
-  new THREE.TorusGeometry(1.8, 0.18, 16, 100), metal
+  new THREE.CylinderGeometry(1.8, 1.8, 1.1, 64, 1, true),
+  metal
 );
 stator.rotation.x = Math.PI / 2;
 motor.add(stator);
 
-// Copper windings
-const copper = new THREE.MeshStandardMaterial({ color: 0xd97706 });
+// Front and rear stator rings
+for (const z of [-0.55, 0.55]) {
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(1.8, 0.13, 16, 80),
+    darkMetal
+  );
+  ring.position.z = z;
+  motor.add(ring);
+}
 
+// Stator windings
 for (let i = 0; i < 12; i++) {
-  const angle = i * Math.PI / 6;
+  const angle = (i / 12) * Math.PI * 2;
+
   const winding = new THREE.Mesh(
-    new THREE.BoxGeometry(0.35, 0.6, 0.22), copper
+    new THREE.BoxGeometry(0.42, 0.65, 0.75),
+    copper
   );
+
   winding.position.set(
-    Math.cos(angle) * 1.5, 0, Math.sin(angle) * 1.5
+    Math.cos(angle) * 1.48,
+    Math.sin(angle) * 1.48,
+    0
   );
-  winding.rotation.y = -angle;
+
+  winding.rotation.z = angle;
   motor.add(winding);
 }
 
-// Rotor
+// Rotor assembly
 const rotor = new THREE.Group();
 motor.add(rotor);
 
 const rotorBody = new THREE.Mesh(
-  new THREE.CylinderGeometry(1.05, 1.05, 0.5, 64),
-  new THREE.MeshStandardMaterial({
-    color: 0x64748b, metalness: 0.8, roughness: 0.3
-  })
+  new THREE.CylinderGeometry(1.05, 1.05, 0.65, 64),
+  darkMetal
 );
+rotorBody.rotation.x = Math.PI / 2;
 rotor.add(rotorBody);
+
+// Rotor front disc
+const disc = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.85, 0.85, 0.12, 64),
+  metal
+);
+disc.rotation.x = Math.PI / 2;
+disc.position.z = 0.36;
+rotor.add(disc);
 
 // Shaft
 const shaft = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.15, 0.15, 1.5, 32),
+  new THREE.CylinderGeometry(0.16, 0.16, 1.8, 32),
   metal
 );
+shaft.rotation.x = Math.PI / 2;
 rotor.add(shaft);
 
 // Permanent magnets
-const blue = new THREE.MeshStandardMaterial({ color: 0x2563eb });
-const red = new THREE.MeshStandardMaterial({ color: 0xdc2626 });
-
 for (let i = 0; i < 4; i++) {
-  const angle = i * Math.PI / 2;
+  const angle = (i / 4) * Math.PI * 2;
+
   const magnet = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, 0.15, 0.25),
+    new THREE.BoxGeometry(0.55, 0.2, 0.5),
     i % 2 === 0 ? blue : red
   );
+
   magnet.position.set(
-    Math.cos(angle) * 0.8, 0.32, Math.sin(angle) * 0.8
+    Math.cos(angle) * 0.78,
+    Math.sin(angle) * 0.78,
+    0.15
   );
-  magnet.rotation.y = -angle;
+
+  magnet.rotation.z = angle;
   rotor.add(magnet);
 }
 
-const grid = new THREE.GridHelper(10, 10);
-grid.position.y = -1.2;
+// Base
+const base = new THREE.Mesh(
+  new THREE.BoxGeometry(4.5, 0.25, 2.8),
+  darkMetal
+);
+base.position.set(0, -2.1, 0);
+motor.add(base);
+
+// Ground grid
+const grid = new THREE.GridHelper(10, 20, 0x475569, 0x263449);
+grid.position.y = -2.25;
 scene.add(grid);
 
+// Motor controls
 let running = false;
 let speed = 0.05;
 
@@ -114,7 +177,7 @@ function animate() {
   requestAnimationFrame(animate);
 
   if (running) {
-    rotor.rotation.y += speed;
+    rotor.rotation.z += speed;
   }
 
   controls.update();
@@ -126,8 +189,8 @@ animate();
 window.addEventListener("resize", () => {
   const width = container.clientWidth;
   const height = container.clientHeight;
+
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   renderer.setSize(width, height);
 });
-
