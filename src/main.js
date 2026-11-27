@@ -48,6 +48,11 @@ const darkMetal = new THREE.MeshStandardMaterial({
 const copper = new THREE.MeshStandardMaterial({
   color: 0xd97706, metalness: 0.65, roughness: 0.25
 });
+const phaseA = new THREE.MeshStandardMaterial({ color: 0xef4444 });
+const phaseB = new THREE.MeshStandardMaterial({ color: 0x22c55e });
+const phaseC = new THREE.MeshStandardMaterial({ color: 0x3b82f6 });
+
+const phases = [phaseA, phaseB, phaseC];
 
 const blue = new THREE.MeshStandardMaterial({
   color: 0x2563eb, metalness: 0.4, roughness: 0.3
@@ -81,7 +86,7 @@ for (let i = 0; i < 12; i++) {
 
   const winding = new THREE.Mesh(
     new THREE.BoxGeometry(0.42, 0.65, 0.75),
-    copper
+    copper[ i%3]
   );
 
   winding.position.set(
